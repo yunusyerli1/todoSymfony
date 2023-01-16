@@ -26,6 +26,9 @@ class BlogPost
     #[ORM\Column(length: 255)]
     private ?string $author = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $slug = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -43,14 +46,14 @@ class BlogPost
         return $this;
     }
 
-    public function getPubs(): ?\DateTimeInterface
+    public function getPublished(): ?\DateTimeInterface
     {
-        return $this->pubs;
+        return $this->published;
     }
 
-    public function setPubs(\DateTimeInterface $published): self
+    public function setPublished(\DateTimeInterface $published): self
     {
-        $this->pubs = $published;
+        $this->published = $published;
 
         return $this;
     }
@@ -78,4 +81,16 @@ class BlogPost
 
         return $this;
     }
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(?string $slug): void
+    {
+        $this->slug = $slug;
+    }
+
+
 }

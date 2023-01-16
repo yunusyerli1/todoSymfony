@@ -2,84 +2,94 @@
 
 namespace App\Controller;
 
+use App\Entity\BlogPost;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Entity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Serializer\SerializerInterface;
 
-/**
- * @Route("/blog")
- */
+#[Route('/blog')]
 class BlogController extends AbstractController
 {
-    private const POSTS = [
-      [
-          'id' => 1,
-          'slug' => 'hello-world',
-          'title'=> 'Hello World'
-      ],
-        [
-            'id' => 2,
-            'slug' => 'another-post',
-            'title'=> 'This is another post'
-        ],
-        [
-            'id' => 3,
-            'slug' => 'last-example',
-            'title'=> 'This is the last example'
-        ],
 
-    ];
+    public function __construct(private readonly EntityManagerInterface $entityManager, private readonly SerializerInterface $serializer) {}
 
-
-
-
-    /**
-     * @Route("/", name="blog_list", defaults={"page":5})
-     */
+    #[Route('/', name: 'blog_list', requirements: ["page"=> "\d+"], defaults: ["page"=> 5])]
     public function list($page)
     {
-        return new JsonResponse( [
+        $repository = $this->entityManager->getRepository(BlogPost::class);
+        $items = $repository->findAll();
+        return $this->json([
             'page' => $page,
-            'data'=> self::POSTS
+            'data'=> $items
         ]);
     }
 
-    /**
-     * @Route("/routes", name="blog_routes", defaults={"page":5})
-     */
+//    /**
+//     * @Route("/{page}", name="blog_routes", defaults={"page":5}, requirements={"page"="\d+"})
+//     */
+    #[Route('/routes', name: 'blog_routes', requirements: ["page"=> "\d+"], defaults: ["page"=> 5])]
     public function listRoute($page=2, Request $request)
     {
         $limit= $request->get('limit', 10);
+        $repository = $this->entityManager->getRepository(BlogPost::class);
+        $items = $repository->findAll();
         return $this->json([
             'page' => $page,
             'limit'=> $limit,
-            'data'=> array_map(function ($item){
-                return $this->generateUrl('blog_by_slug', ['slug'=> $item['slug']]);
-            },self::POSTS)
+            'data'=> array_map(function (BlogPost $item){
+                return $this->generateUrl('blog_by_slug', ['slug'=> $item->getSlug()]);
+            },$items)
         ]);
     }
 
-    /**
-     * @Route("/{id}", name="blog_by_id", requirements={"id"="\d+"})
-     */
-    public function post($id)
+    #[Route('/post/{id}', name: 'blog_by_id', requirements: ["page"=> "\d+"], methods: 'GET')]
+    #[Entity("post", class: "App\Entity\BlogPost")]
+    public function post($post)
     {
-        return new JsonResponse(
-          self::POSTS[array_search($id, array_column(self::POSTS, 'id'))]
+        return $this->json(
+            $post
+            //$this->entityManager->getRepository(BlogPost::class)->find($id)
         );
     }
 
-    /**
-     * @Route("/{slug}", name="blog_by_slug")
-     */
-    public function postBySlug($slug)
+    #[Route('/post/{slug}', name: 'blog_by_slug', methods: 'GET')]
+    #[Entity("post", class: "App\Entity\BlogPost",options: ["mapping"=>["slug"=>"slug"]])]
+    public function postBySlug($post)
     {
-        return new JsonResponse(
-            self::POSTS[array_search($slug, array_column(self::POSTS, 'slug'))]
-        );
+        //Same as doing findOneBy(['slug' => $slug])
+        return $this->json($post);
     }
 
+//    public function postBySlug($slug)
+//    {
+//        return $this->json(
+//            $this->entityManager->getRepository(BlogPost::class)->findOneBy(array('slug' => $slug))
+//        );
+//    }
 
+    #[Route('/add', name: 'blog_add', methods: ['POST'])]
+    public function add(Request $request)
+    {
+        $blogPost = $this->serializer->deserialize($request->getContent(), BlogPost::class, 'json');
+        $this->entityManager ->persist($blogPost);
+        $this->entityManager->flush();
+
+        return $this->json($blogPost);
+    }
+
+    #[Route('/delete/{id}', name: 'blog_delete', methods: ['POST'])]
+    public function delete(BlogPost $post)
+    {
+        $this->entityManager ->remove($post);
+        $this->entityManager->flush();
+
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+    }
 
 }
