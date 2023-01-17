@@ -8,7 +8,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CommentRepository::class)]
-#[ApiResource]
+#[ApiResource()]
 class Comment
 {
     #[ORM\Id]
@@ -25,6 +25,10 @@ class Comment
     #[ORM\ManyToOne(targetEntity: "App\Entity\User",  inversedBy: "comments")]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $author;
+
+    #[ORM\ManyToOne(targetEntity: "App\Entity\BlogPost", inversedBy: "comments")]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?BlogPost $blogPost;
 
     public function getId(): ?int
     {
@@ -69,6 +73,23 @@ class Comment
     public function setAuthor(User $author): self
     {
         $this->author = $author;
+        return $this;
+    }
+
+    /**
+     * @return BlogPost
+     */
+    public function getBlogPost(): ?BlogPost
+    {
+        return $this->blogPost;
+    }
+
+    /**
+     * @param BlogPost $blogPost
+     */
+    public function setBlogPost(BlogPost $blogPost): self
+    {
+        $this->blogPost = $blogPost;
         return $this;
     }
 
