@@ -3,31 +3,79 @@
 namespace App\DataFixtures;
 
 use App\Entity\BlogPost;
+use App\Entity\User;
+use App\Entity\Comment;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class AppFixtures extends Fixture
 {
+    /**
+     * @var \Faker\Factory
+     */
+    private $faker;
+    public function __construct(public UserPasswordHasherInterface $userPasswordHasher) {
+        $this->faker = \Faker\Factory::create();
+    }
+
+
     public function load(ObjectManager $manager): void
     {
-        $blogPost = new BlogPost();
-        $blogPost->setTitle("A first post!");
-        $blogPost->setPublished(new \DateTime('2018-06-01 12:30:00'));
-        $blogPost->setContent("Post text!");
-        $blogPost->setAuthor("Resat Nuri");
-        $blogPost->setSlug("a-fist-post");
+        $this->loadUsers($manager);
+        $this->loadBlogPosts($manager);
+        $this->loadComments($manager);
 
-        $manager->persist($blogPost);
+    }
 
-        $blogPost = new BlogPost();
-        $blogPost->setTitle("A seconds post!");
-        $blogPost->setPublished(new \DateTime('2018-05-14 16:00:00'));
-        $blogPost->setContent("Post text!");
-        $blogPost->setAuthor("Kemal Sunal");
-        $blogPost->setSlug("a-second-post");
+    public function loadBlogPosts(ObjectManager $manager)
+    {
+        $user = $this->getReference('user_admin');
 
-        $manager->persist($blogPost);
+        for ($i = 0; $i < 100; $i++) {
+            $blogPost = new BlogPost();
+            $blogPost->setTitle($this->faker->realText());
+            $blogPost->setPublished($this->faker->dateTimeThisYear);
+            $blogPost->setContent($this->faker->realText());
+            $blogPost->setAuthor($user);
+            $blogPost->setSlug($this->faker->unique()->slug);
 
+            $this->setReference("blog_post_$i", $blogPost);
+
+            $manager->persist($blogPost);
+        }
+
+        $manager->flush();
+    }
+
+    public function loadComments(ObjectManager $manager)
+    {
+        for ($i = 0; $i < 100; $i++) {
+            for ($j = 0; $j < rand(1,10); $j++) {
+                $comment = new Comment();
+                $comment->setContent($this->faker->realText());
+                $comment->setPublished($this->faker->dateTimeThisYear);
+                $comment->setAuthor($this->getReference('user_admin'));
+
+                $manager->persist($comment);
+
+            }
+        }
+        $manager->flush();
+    }
+
+    public function loadUsers(ObjectManager $manager)
+    {
+        $user = new User();
+        $user->setUsername('admin');
+        $user->setEmail('yunusyerli1@gmail.com');
+        $user->setName('Yunus Yerli');
+        $hashedPassword = $this->userPasswordHasher->hashPassword($user, 'deneme12');
+        $user->setPassword($hashedPassword);
+
+        $this->addReference('user_admin', $user);
+
+        $manager->persist($user);
         $manager->flush();
     }
 }
