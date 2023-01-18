@@ -23,7 +23,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[UniqueEntity("email")]
 #[ApiResource(
     operations: [
-        new Get(),
+        new Get(security:"is_granted('ROLE_USER')" ),
         new Post(),
         new GetCollection()
 
