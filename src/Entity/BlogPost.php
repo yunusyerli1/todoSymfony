@@ -27,7 +27,7 @@ class BlogPost
     #[ORM\Column(type: Types::TEXT)]
     private ?string $content = null;
 
-    #[ORM\ManyToOne(targetEntity: "App\Entity\User",  inversedBy: "comments")]
+    #[ORM\ManyToOne(targetEntity: "App\Entity\User",  inversedBy: "posts")]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $author;
 
