@@ -10,11 +10,12 @@ use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
+
 class PasswordHashSubscriber implements EventSubscriberInterface
 {
     public function __construct(public UserPasswordHasherInterface $userPasswordHasher){}
 
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         // TODO: Implement getSubscribedEvents() method.
         return [
