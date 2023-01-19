@@ -23,12 +23,11 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[UniqueEntity("email")]
 #[ApiResource(
     operations: [
-        new Get(security:"is_granted('ROLE_USER')" ),
-        new Post(),
+        new Get(normalizationContext: ['groups' => ['get']], security: "is_granted('ROLE_USER')"),
+        new Post(normalizationContext: ['groups' => ['get']], denormalizationContext: ['groups' => ['post']]),
+        new Put(normalizationContext: ['groups' => ['get']], denormalizationContext: ['groups' => ['put']], security: "is_granted('ROLE_USER') and object==user"),
         new GetCollection()
-
-    ],
-    normalizationContext: ['groups' => ['read']],
+    ]
 )]
 
 class User implements PasswordAuthenticatedUserInterface, UserInterface
@@ -36,16 +35,17 @@ class User implements PasswordAuthenticatedUserInterface, UserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['read'])]
+    #[Groups(['get'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['read'])]
+    #[Groups(['get', 'post'])]
     #[Assert\NotBlank()]
     #[Assert\Length(min: 6, max: 255)]
     private ?string $username = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['put', 'post'])]
     #[Assert\NotBlank()]
     #[Assert\Regex(
         pattern: "/(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).{7,}/",
@@ -54,6 +54,7 @@ class User implements PasswordAuthenticatedUserInterface, UserInterface
     private ?string $password = null;
 
     #[Assert\NotBlank()]
+    #[Groups(['put', 'post'])]
     #[Assert\Expression(
         "this.getPassword() === this.getRetypedPassword()",
         message: "Password doesnt match"
@@ -61,23 +62,24 @@ class User implements PasswordAuthenticatedUserInterface, UserInterface
     private ?string $retypedPassword = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['read'])]
+    #[Groups(['get', 'put', 'post'])]
     #[Assert\NotBlank()]
     #[Assert\Length(min: 3, max: 255)]
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['post', 'put'])]
     #[Assert\NotBlank()]
     #[Assert\Email()]
     #[Assert\Length(min: 6, max: 255)]
     private ?string $email = null;
 
     #[ORM\OneToMany(mappedBy: "author", targetEntity: "App\Entity\BlogPost")]
-    #[Groups(['read'])]
+    #[Groups(['get'])]
     private $posts;
 
     #[ORM\OneToMany(mappedBy: "author", targetEntity: "App\Entity\Comment")]
-    #[Groups(['read'])]
+    #[Groups(['get'])]
     private $comments;
 
     public function __construct()

@@ -3,12 +3,23 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use App\Repository\CommentRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CommentRepository::class)]
-#[ApiResource()]
+#[ApiResource(
+    operations: [
+        new Get(),
+        new Post(security:"is_granted('ROLE_USER')"),
+        new Put(security:"is_granted('ROLE_USER') and object.getAuthor()==user"),
+        new GetCollection()
+    ],
+)]
 class Comment
 {
     #[ORM\Id]
