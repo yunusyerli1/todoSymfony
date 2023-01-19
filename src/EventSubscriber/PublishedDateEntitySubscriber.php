@@ -1,4 +1,5 @@
 <?php
+namespace App\EventSubscriber;
 
 use ApiPlatform\Symfony\EventListener\EventPriorities;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -22,7 +23,6 @@ class PublishedDateEntitySubscriber implements EventSubscriberInterface
     {
         $entity = $event->getControllerResult();
         $method = $event->getRequest()->getMethod();
-
         if ((!$entity instanceof PublishedDateEntityInterface ) || Request::METHOD_POST !== $method) {
             return;
         }

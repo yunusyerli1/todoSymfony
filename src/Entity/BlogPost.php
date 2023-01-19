@@ -39,8 +39,8 @@ class BlogPost implements AuthoredEntityInterface, PublishedDateEntityInterface
     #[Groups(['post'])]
     private ?string $title = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?\DateTimeInterface $published;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private ?\DateTimeInterface $published = null;
 
     #[ORM\Column(type: Types::TEXT)]
     #[Assert\NotBlank()]
