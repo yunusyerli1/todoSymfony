@@ -12,6 +12,8 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: BlogPostRepository::class)]
@@ -22,8 +24,9 @@ use Symfony\Component\Validator\Constraints as Assert;
     new Put(security:"is_granted('ROLE_USER') and object.getAuthor()==user"),
     new GetCollection()
     ],
+    denormalizationContext: ['groups' => ['post']]
 )]
-class BlogPost
+class BlogPost implements AuthoredEntityInterface, PublishedDateEntityInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -33,17 +36,16 @@ class BlogPost
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank()]
     #[Assert\Length(min: 10)]
+    #[Groups(['post'])]
     private ?string $title = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    //#[ORM\Column]
-    #[Assert\NotBlank()]
-    #[Assert\DateTime()]
-    private ?\DateTimeInterface $published = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $published;
 
     #[ORM\Column(type: Types::TEXT)]
     #[Assert\NotBlank()]
     #[Assert\Length(min: 20)]
+    #[Groups(['post'])]
     private ?string $content = null;
 
     #[ORM\ManyToOne(targetEntity: "App\Entity\User",  inversedBy: "posts")]
@@ -52,6 +54,7 @@ class BlogPost
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Assert\NotBlank()]
+    #[Groups(['post'])]
     private ?string $slug = null;
 
     #[ORM\OneToMany(mappedBy: "blogPost", targetEntity: "App\Entity\Comment")]
@@ -93,7 +96,7 @@ class BlogPost
         return $this->published;
     }
 
-    public function setPublished(\DateTimeInterface $published): self
+    public function setPublished(\DateTimeInterface $published): PublishedDateEntityInterface
     {
         $this->published = $published;
 
@@ -131,9 +134,9 @@ class BlogPost
     }
 
     /**
-     * @param User $author
+     * @param UserInterface $author
      */
-    public function setAuthor(User $author): self
+    public function setAuthor(UserInterface $author): AuthoredEntityInterface
     {
         $this->author = $author;
         return $this;
