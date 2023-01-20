@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\ApiSubresource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
@@ -16,10 +17,12 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
+
 #[ORM\Entity(repositoryClass: BlogPostRepository::class)]
+#[ApiResource]
 #[ApiResource(
     operations: [
-    new Get(),
+    new Get(normalizationContext: ['groups' => ['get-blogpost-author']]),
     new Post(security:"is_granted('ROLE_USER')"),
     new Put(security:"is_granted('ROLE_USER') and object.getAuthor()==user"),
     new GetCollection()
@@ -31,34 +34,38 @@ class BlogPost implements AuthoredEntityInterface, PublishedDateEntityInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['get-blogpost-author'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank()]
     #[Assert\Length(min: 10)]
-    #[Groups(['post'])]
+    #[Groups(['post','get-blogpost-author'])]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Groups(['get-blogpost-author'])]
     private ?\DateTimeInterface $published = null;
 
     #[ORM\Column(type: Types::TEXT)]
     #[Assert\NotBlank()]
     #[Assert\Length(min: 20)]
-    #[Groups(['post'])]
+    #[Groups(['post','get-blogpost-author'])]
     private ?string $content = null;
 
     #[ORM\ManyToOne(targetEntity: "App\Entity\User",  inversedBy: "posts")]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['get-blogpost-author'])]
     private ?User $author;
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Assert\NotBlank()]
-    #[Groups(['post'])]
+    #[Groups(['post','get-blogpost-author'])]
     private ?string $slug = null;
 
     #[ORM\OneToMany(mappedBy: "blogPost", targetEntity: "App\Entity\Comment")]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['get-blogpost-author'])]
     private $comments;
 
     public function __construct()

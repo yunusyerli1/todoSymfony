@@ -39,7 +39,7 @@ class User implements PasswordAuthenticatedUserInterface, UserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['get', 'post'])]
+    #[Groups(['get', 'post', 'get-comment-with-author', 'get-blogpost-author'])]
     #[Assert\NotBlank()]
     #[Assert\Length(min: 6, max: 255)]
     private ?string $username = null;
@@ -62,7 +62,7 @@ class User implements PasswordAuthenticatedUserInterface, UserInterface
     private ?string $retypedPassword = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['get', 'put', 'post'])]
+    #[Groups(['get', 'put', 'post', 'get-comment-with-author', 'get-blogpost-author'])]
     #[Assert\NotBlank()]
     #[Assert\Length(min: 3, max: 255)]
     private ?string $name = null;
