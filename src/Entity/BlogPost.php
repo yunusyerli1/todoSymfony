@@ -23,8 +23,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiResource(
     operations: [
     new Get(normalizationContext: ['groups' => ['get-blogpost-author']]),
-    new Post(security:"is_granted('ROLE_USER')"),
-    new Put(security:"is_granted('ROLE_USER') and object.getAuthor()==user"),
+    new Post(security:"is_granted('ROLE_EDITOR') || is_granted('ROLE_WRITER')"),
+    new Put(security:"is_granted('ROLE_EDITOR') ||  (is_granted('ROLE_WRITER') && object.getAuthor()==user)"),
     new GetCollection()
     ],
     denormalizationContext: ['groups' => ['post']]

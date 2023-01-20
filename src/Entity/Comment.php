@@ -18,8 +18,8 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ApiResource(
     operations: [
         new Get(),
-        new Post(security:"is_granted('ROLE_USER')"),
-        new Put(security:"is_granted('ROLE_USER') and object.getAuthor()==user"),
+        new Post(security:"is_granted('ROLE_COMMENTATOR')"),
+        new Put(security:"is_granted('ROLE_EDITOR') || (is_granted('ROLE_COMMENTATOR') && object.getAuthor()==user)"),
         new GetCollection(),
         new GetCollection(
             uriTemplate: '/blog_posts/{id}/comments',

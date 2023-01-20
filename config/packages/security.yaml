@@ -1,5 +1,4 @@
 security:
-    enable_authenticator_manager: true
     # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
     password_hashers:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
@@ -44,6 +43,10 @@ security:
         - { path: ^/api, roles: [ PUBLIC_ACCESS ] }
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
+    role_hierarchy:
+        ROLE_WRITER: ROLE_COMMENTATOR
+        ROLE_ADMIN: [ ROLE_WRITER, ROLE_EDITOR ]
+        ROLE_SUPERADMIN: ROLE_ADMIN
 
 when@test:
     security:
