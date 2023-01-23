@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Delete;
@@ -19,6 +20,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\Validator\Constraints\UserPassword;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+//use App\Controller\ResetPasswordAction;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[UniqueEntity("username")]
@@ -27,7 +29,16 @@ use Symfony\Component\Validator\Constraints as Assert;
     operations: [
         new Get(normalizationContext: ['groups' => ['get']], security: "is_granted('ROLE_COMMENTATOR')"),
         new Post(normalizationContext: ['groups' => ['get']], denormalizationContext: ['groups' => ['post']]),
-        new Put(normalizationContext: ['groups' => ['get']], denormalizationContext: ['groups' => ['put']], security: "is_granted('ROLE_COMMENTATOR') && object==user"),
+        new Put(
+
+            normalizationContext: ['groups' => ['get']],
+            denormalizationContext: ['groups' => ['put']],
+            security: "is_granted('ROLE_COMMENTATOR') && object==user",
+//            uriTemplate: '/users/{id}/reset-password',
+//            controller: ResetPasswordAction::class,
+//            name: 'reset-password',
+
+        ),
         new GetCollection()
     ]
 )]
@@ -51,16 +62,17 @@ class User implements PasswordAuthenticatedUserInterface, UserInterface
 
     #[ORM\Column(length: 255)]
     #[Groups(['get', 'post', 'get-comment-with-author', 'get-blogpost-author'])]
-    #[Assert\NotBlank()]
-    #[Assert\Length(min: 6, max: 255)]
+    #[Assert\NotBlank(groups: ['post'])]
+    #[Assert\Length(min: 6, max: 255, groups: ['post'])]
     private ?string $username = null;
 
     #[ORM\Column(length: 255)]
     #[Groups(['post'])]
-    #[Assert\NotBlank()]
+    #[Assert\NotBlank(groups: ['post'])]
     #[Assert\Regex(
         pattern: "/(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).{7,}/",
-        message: "Password must be seven character long and contain at least one digit, one uppercase"
+        message: "Password must be seven character long and contain at least one digit, one uppercase",
+        groups: ['post']
     )]
     private ?string $password = null;
 
@@ -74,37 +86,39 @@ class User implements PasswordAuthenticatedUserInterface, UserInterface
 
     //#[ORM\Column(length: 255)]
     #[Groups(['put-reset-password'])]
-    #[Assert\NotBlank()]
+    #[Assert\NotBlank(groups: ['put-reset-password'])]
     #[Assert\Regex(
         pattern: "/(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).{7,}/",
-        message: "Password must be seven character long and contain at least one digit, one uppercase"
+        message: "Password must be seven character long and contain at least one digit, one uppercase",
+        groups: ['put-reset-password']
     )]
     private ?string $newPassword = null;
 
     #[Groups(['put-reset-password'])]
-    #[Assert\NotBlank()]
+    #[Assert\NotBlank(groups: ['put-reset-password'])]
     #[Assert\Regex(
         "this.getNewPassword() === this.getNewRetypedPassword()",
-        message: "Password must be seven character long and contain at least one digit, one uppercase"
+        message: "Password must be seven character long and contain at least one digit, one uppercase",
+        groups: ['put-reset-password']
     )]
     private ?string $newRetypedPassword = null;
 
     #[Groups(['put-reset-password'])]
-    #[Assert\NotBlank()]
-    #[UserPassword()]
+    #[Assert\NotBlank(groups: ['put-reset-password'])]
+    #[UserPassword(groups: ['put-reset-password'])]
     private ?string $oldPassword = null;
 
     #[ORM\Column(length: 255)]
     #[Groups(['get', 'put', 'post', 'get-comment-with-author', 'get-blogpost-author'])]
-    #[Assert\NotBlank()]
-    #[Assert\Length(min: 3, max: 255)]
+    #[Assert\NotBlank(groups: ['post'])]
+    #[Assert\Length(min: 3, max: 255, groups: ['post', 'put'])]
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
     #[Groups(['post', 'put', 'get-admin', 'get-owner'])]
-    #[Assert\NotBlank()]
-    #[Assert\Email()]
-    #[Assert\Length(min: 6, max: 255)]
+    #[Assert\NotBlank(groups: ['post'])]
+    #[Assert\Email(groups: ['post', 'put'])]
+    #[Assert\Length(min: 6, max: 255, groups: ['post', 'put'])]
     private ?string $email = null;
 
     #[ORM\OneToMany(mappedBy: "author", targetEntity: "App\Entity\BlogPost")]
@@ -119,11 +133,21 @@ class User implements PasswordAuthenticatedUserInterface, UserInterface
     #[Groups(['get-admin', 'get-owner'])]
     private $roles;
 
+    #[ORM\Column( nullable: true)]
+    private ?int $passwordChangeDate = null;
+
+    #[ORM\Column( type: Types::BOOLEAN)]
+    private ?bool $enabled;
+
+    #[ORM\Column(length: 40, nullable: true)]
+    private ?string $confirmationToken = null;
+
     public function __construct()
     {
         $this->posts = new ArrayCollection();
         $this->comments = new ArrayCollection();
         $this->roles = self::DEFAULT_ROLES;
+        $this->enabled = false;
     }
 
     public function getId(): ?int
@@ -254,6 +278,36 @@ class User implements PasswordAuthenticatedUserInterface, UserInterface
     public function setOldPassword(?string $oldPassword): void
     {
         $this->oldPassword = $oldPassword;
+    }
+
+    public function getPasswordChangeDate()
+    {
+        return $this->passwordChangeDate;
+    }
+
+    public function setPasswordChangeDate($passwordChangeDate): void
+    {
+        $this->passwordChangeDate = $passwordChangeDate;
+    }
+
+    public function getEnabled()
+    {
+        return $this->enabled;
+    }
+
+    public function setEnabled($enabled): void
+    {
+        $this->enabled = $enabled;
+    }
+
+    public function getConfirmationToken()
+    {
+        return $this->confirmationToken;
+    }
+
+    public function setConfirmationToken($confirmationToken): void
+    {
+        $this->confirmationToken = $confirmationToken;
     }
 
 }

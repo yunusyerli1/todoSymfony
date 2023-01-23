@@ -3,7 +3,9 @@
 namespace App\EventSubscriber;
 
 use ApiPlatform\Symfony\EventListener\EventPriorities;
+use App\Email\Mailer;
 use App\Entity\User;
+use App\Security\TokenGenerator;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
@@ -11,19 +13,23 @@ use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 
-class PasswordHashSubscriber implements EventSubscriberInterface
+class UserRegisterSubscriber implements EventSubscriberInterface
 {
-    public function __construct(public UserPasswordHasherInterface $userPasswordHasher){}
+    public function __construct(
+        protected UserPasswordHasherInterface $userPasswordHasher,
+        protected TokenGenerator $tokenGenerator,
+        protected Mailer $mailer
+    ){}
 
     public static function getSubscribedEvents(): array
     {
         // TODO: Implement getSubscribedEvents() method.
         return [
-            KernelEvents::VIEW => ['hashPassword', EventPriorities::PRE_WRITE]
+            KernelEvents::VIEW => ['userRegistered', EventPriorities::PRE_WRITE]
         ];
     }
 
-    public function hashPassword(ViewEvent $event)
+    public function userRegistered(ViewEvent $event)
     {
         $user = $event->getControllerResult();
         $method = $event->getRequest()->getMethod();
@@ -36,5 +42,14 @@ class PasswordHashSubscriber implements EventSubscriberInterface
         //It is an User, we need to hash password here
         $hashedPassword = $this->userPasswordHasher->hashPassword($user, $user->getPassword());
         $user->setPassword($hashedPassword);
+
+        //Create confirmation token
+        $user->setConfirmationToken(
+            $this->tokenGenerator->getRandomSecureToken()
+        );
+
+        //Send email here...
+        $this->mailer->sendConfirmationEmail($user);
+
     }
 }

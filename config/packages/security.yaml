@@ -24,6 +24,7 @@ security:
                 success_handler: lexik_jwt_authentication.handler.authentication_success
                 #Handle authentication failure (invalid or no credentials)
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
+            user_checker: App\Security\UserEnabledChecker
 
         api:
             pattern: ^/api
