@@ -56,7 +56,7 @@ class BlogPost implements AuthoredEntityInterface, PublishedDateEntityInterface
     #[ORM\ManyToOne(targetEntity: "App\Entity\User",  inversedBy: "posts")]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['get-blogpost-author'])]
-    private ?User $author;
+    private User $author;
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Assert\NotBlank()]
@@ -68,17 +68,15 @@ class BlogPost implements AuthoredEntityInterface, PublishedDateEntityInterface
     #[Groups(['get-blogpost-author'])]
     private $comments;
 
+    #[ORM\ManyToMany(targetEntity: "App\Entity\Image")]
+    #[ORM\JoinTable()]
+    #[Groups(['post', 'get-blog-post-with-author'])]
+    private  $images;
+
     public function __construct()
     {
         $this->comments = new ArrayCollection();
-    }
-
-    /**
-     * @return Collection
-     */
-    public function getComments(): Collection
-    {
-        return $this->comments;
+        $this->images = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -149,5 +147,24 @@ class BlogPost implements AuthoredEntityInterface, PublishedDateEntityInterface
         return $this;
     }
 
+    public function getComments(): Collection
+    {
+        return $this->comments;
+    }
+
+    public function getImages(): Collection
+    {
+        return $this->images;
+    }
+
+    public function addImages(Image $image)
+    {
+        return $this->add($image);
+    }
+
+    public function removeImage(Image $image)
+    {
+        return $this->removeElement($image);
+    }
 
 }

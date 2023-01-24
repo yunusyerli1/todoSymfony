@@ -24,10 +24,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
         new GetCollection(
             uriTemplate: '/blog_posts/{id}/comments',
             uriVariables: [
-                'id' => new Link(
-                    fromProperty: 'comments',
-                    fromClass: BlogPost::class
-                )
+                'id' => new Link(fromProperty: 'comments', fromClass: BlogPost::class)
             ],
             normalizationContext: ['groups' => ['get-comment-with-author']]
         )
