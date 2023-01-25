@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Post;
@@ -25,7 +27,12 @@ use Symfony\Component\HttpFoundation\File\File;
             defaults: ["_api_receive"=> false],
             controller: UploadImageAction::class,
         )
-    ]
+    ],
+    order: ['id'=>'DESC']
+)]
+#[ApiFilter(
+    SearchFilter::class,
+    properties: ["id"=>"exact" , "title"=>"partial"]
 )]
 
 class Image

@@ -29,7 +29,8 @@ use Symfony\Component\Serializer\Annotation\Groups;
             normalizationContext: ['groups' => ['get-comment-with-author']]
         )
     ],
-    denormalizationContext: ['groups' => ['post']]
+    denormalizationContext: ['groups' => ['post']],
+    order: ['published'=>'ASC']
 )]
 class Comment implements AuthoredEntityInterface, PublishedDateEntityInterface
 {

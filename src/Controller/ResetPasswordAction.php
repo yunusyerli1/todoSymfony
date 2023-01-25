@@ -6,9 +6,13 @@ use ApiPlatform\Validator\ValidatorInterface;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
+//#[AsController]
+//class ResetPasswordAction extends AbstractController
 class ResetPasswordAction
 {
     /**

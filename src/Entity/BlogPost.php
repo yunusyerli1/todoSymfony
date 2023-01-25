@@ -2,12 +2,18 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\DateFilter;
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Doctrine\Orm\Filter\RangeFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\ApiSubresource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Serializer\Filter\PropertyFilter;
 use App\Repository\BlogPostRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -19,7 +25,27 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 
 #[ORM\Entity(repositoryClass: BlogPostRepository::class)]
-#[ApiResource]
+#[ApiFilter(
+    SearchFilter::class,
+    properties: ['published' => 'exact', 'title' => 'partial', 'content' => 'partial', 'author' => 'exact', 'author.name' => 'exact']
+)]
+#[ApiFilter(
+    DateFilter::class,
+    properties: ['published']
+)]
+#[ApiFilter(
+    RangeFilter::class,
+    properties: ['id']
+)]
+#[ApiFilter(
+    OrderFilter::class,
+    properties: ['id', 'published', 'title']
+)]
+
+#[ApiFilter(
+    PropertyFilter::class,
+    arguments: ['parameterName' => 'properties', 'overrideDefaultProperties'=> false, 'whitelist'=>['id', 'author', 'slug']]
+)]
 #[ApiResource(
     operations: [
     new Get(normalizationContext: ['groups' => ['get-blogpost-author']]),
