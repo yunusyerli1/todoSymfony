@@ -2,10 +2,11 @@
 
 namespace App\Services;
 
+use App\Exception\InvalidConfirmationTokenException;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+//use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class UserConfirmationService
 {
@@ -44,7 +45,7 @@ class UserConfirmationService
         // User was NOT found by confirmation token
         if (!$user) {
             $this->logger->debug('User by confirmation token not found');
-            throw new NotFoundHttpException();
+            throw new InvalidConfirmationTokenException();
         }
 
         $user->setEnabled(true);

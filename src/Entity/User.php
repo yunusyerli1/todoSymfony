@@ -9,6 +9,7 @@ use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\GetCollection;
+use App\Exception\EmptyBodyException;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -28,15 +29,15 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['get']], security: "is_granted('ROLE_COMMENTATOR')"),
-        new Post(normalizationContext: ['groups' => ['get']], denormalizationContext: ['groups' => ['post']]),
+        new Post(normalizationContext: ['groups' => ['get']], denormalizationContext: ['groups' => ['post']],validationContext: ['groups' => ['post']] ),
         new Put(
-
             normalizationContext: ['groups' => ['get']],
             denormalizationContext: ['groups' => ['put']],
             security: "is_granted('ROLE_COMMENTATOR') && object==user",
 //            uriTemplate: '/users/{id}/reset-password',
 //            controller: ResetPasswordAction::class,
 //            name: 'reset-password',
+
 
         ),
         new GetCollection()

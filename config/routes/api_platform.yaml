@@ -3,17 +3,4 @@ api_platform:
     type: api_platform
     prefix: /api
 
-#    collection:
-#        pagination:
-#            page_parameter_name: _page
-#            enabled_parameter_name: pagination # optional
-#            items_per_page_parameter_name: itemsPerPage # Default value
-#            partial_parameter_name: 'partial' # Default value
-#    defaults:
-#        pagination_enabled: false
-#        pagination_client_enabled: true
-#        pagination_items_per_page: 30 # Default value
-#        pagination_client_items_per_page: true
-#        pagination_maximum_items_per_page: 50
-#        pagination_partial: true # Disabled by default
-#        pagination_client_partial: true # Disabled by default
+
