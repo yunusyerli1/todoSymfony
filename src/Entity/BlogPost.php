@@ -193,4 +193,9 @@ class BlogPost implements AuthoredEntityInterface, PublishedDateEntityInterface
         return $this->removeElement($image);
     }
 
+    public function __toString()
+    {
+        return substr($this->content, 0,20) . '...';
+    }
+
 }
